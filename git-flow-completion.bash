@@ -55,7 +55,7 @@ __git_flow_config_file_options="
 
 _git_flow ()
 {
-	local subcommands="init feature release hotfix support help version config finish delete"
+	local subcommands="init feature story release hotfix support help version config finish delete"
 	local subcommand="$(__git_find_on_cmdline "$subcommands")"
 	if [ -z "$subcommand" ]; then
 		__gitcomp "$subcommands"
@@ -69,6 +69,10 @@ _git_flow ()
 		;;
 	feature)
 		__git_flow_feature
+		return
+		;;
+	story)
+		__git_flow_story
 		return
 		;;
 	release)
@@ -129,7 +133,7 @@ __git_flow_feature ()
 		return
 		;;
 	checkout)
-		__gitcomp_nl "$(__git_flow_list_local_branches 'feature')"
+		__gitcomp_nl "$(__git_flow_list_local_branches 'feature' | grep -v "/.*/" | cut -d '/' -f 1)"
 		return
 		;;
 	delete)
@@ -142,7 +146,7 @@ __git_flow_feature ()
 			return
 			;;
 		esac
-		__gitcomp_nl "$(__git_flow_list_local_branches 'feature')"
+		__gitcomp_nl "$(__git_flow_list_local_branches 'feature' | grep -v "/.*/" | cut -d '/' -f 1)"
 		return
 		;;
 	finish)
@@ -162,11 +166,16 @@ __git_flow_feature ()
 			return
 			;;
 		esac
-		__gitcomp_nl "$(__git_flow_list_local_branches 'feature')"
+    if [ ${#words[@]} -eq 5 ]; then
+		  __gitcomp_nl "$(__git_flow_list_local_branches 'feature' | grep -v "/.*/" | cut -d '/' -f 1)"
+    elif [ ${#words[@]} -eq 6 ]; then
+      __gitcomp_nl "$(__git_flow_list_local_branches 'release')"
+    fi
+
 		return
 		;;
 	diff)
-		__gitcomp_nl "$(__git_flow_list_local_branches 'feature')"
+	  __gitcomp_nl "$(__git_flow_list_local_branches 'feature' | grep -v "/.*/" | cut -d '/' -f 1)"
 		return
 		;;
 	rebase)
@@ -179,15 +188,114 @@ __git_flow_feature ()
 			return
 			;;
 		esac
-		__gitcomp_nl "$(__git_flow_list_local_branches 'feature')"
+		__gitcomp_nl "$(__git_flow_list_local_branches 'feature' | grep -v "/.*/" | cut -d '/' -f 1)"
 		return
 		;;
 	publish)
-		__gitcomp_nl "$(__git_flow_list_branches 'feature')"
+		__gitcomp_nl "$(__git_flow_list_branches 'feature' | grep -v "/.*/" | cut -d '/' -f 1)"
 		return
 		;;
 	track)
-		__gitcomp_nl "$(__git_flow_list_branches 'feature')"
+		__gitcomp_nl "$(__git_flow_list_branches 'feature' | grep -v "/.*/" | cut -d '/' -f 1)"
+		return
+		;;
+	*)
+		COMPREPLY=()
+		;;
+	esac
+}
+
+__git_flow_story ()
+{
+	local subcommands="list start finish publish track diff rebase checkout pull help delete"
+	local subcommand="$(__git_find_on_cmdline "$subcommands")"
+
+	if [ -z "$subcommand" ]; then
+		__gitcomp "$subcommands"
+		return
+	fi
+
+	case "$subcommand" in
+	list)
+		__gitcomp_nl "$(__git_flow_list_branches 'feature' | grep -v "/.*/" | cut -d '/' -f 1)"
+		return
+		;;
+	start)
+    if [ ${#words[@]} -eq 5 ]; then
+		  __gitcomp_nl "$(__git_flow_list_branches 'feature' | grep -v "/.*/" | cut -d '/' -f 1)"
+    fi
+
+		return
+		;;
+	pull)
+		__gitcomp_nl "$(__git_remotes)"
+		return
+		;;
+	checkout)
+		__gitcomp_nl "$(__git_flow_list_local_branches 'story' | grep "/.*/.*/" | cut -d '/' -f 4)"
+		return
+		;;
+	delete)
+		case "$cur" in
+		--*)
+			__gitcomp "
+					--noforce --force
+					--noremote --remote
+					"
+			return
+			;;
+		esac
+		__gitcomp_nl "$(__git_flow_list_local_branches 'story' | grep "/.*/.*/" | cut -d '/' -f 4)"
+		return
+		;;
+	finish)
+		case "$cur" in
+		--*)
+			__gitcomp "
+					--nofetch --fetch
+					--norebase --rebase
+					--nopreserve-merges --preserve-merges
+					--nokeep --keep
+					--keepremote
+					--keeplocal
+					--noforce_delete --force_delete
+					--nosquash --squash
+					--no-ff
+				"
+			return
+			;;
+		esac
+		__gitcomp_nl "$(__git_flow_list_local_branches 'story' | grep "/.*/.*/" | cut -d '/' -f 4)"
+		return
+		;;
+	diff)
+    if [ ${#words[@]} -eq 5 ]; then
+		  __gitcomp_nl "$(__git_flow_list_branches 'feature' | grep -v "/.*/" | cut -d '/' -f 1)"
+    elif [ ${#words[@]} -eq 6 ]; then
+		  __gitcomp_nl "$(__git_flow_list_local_branches 'story' | grep "/.*/.*/" | cut -d '/' -f 4)"
+    fi
+
+		return
+		;;
+	rebase)
+		case "$cur" in
+		--*)
+			__gitcomp "
+					--nointeractive --interactive
+					--nopreserve-merges --preserve-merges
+				"
+			return
+			;;
+		esac
+		__gitcomp_nl "$(__git_flow_list_local_branches 'story' | grep "/.*/.*/" | cut -d '/' -f 4)"
+		return
+		;;
+	publish)
+		__gitcomp_nl "$(__git_flow_list_branches 'story' | grep "/.*/.*/" | cut -d '/' -f 4)"
+		return
+		;;
+	track)
+		__gitcomp_nl "$(__git_flow_list_branches 'story' | grep "/.*/.*/" | cut -d '/' -f 4)"
 		return
 		;;
 	*)
