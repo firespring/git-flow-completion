@@ -178,6 +178,24 @@ __git_flow_feature ()
 	  __gitcomp_nl "$(__git_flow_list_local_branches 'feature' | grep -v "/.*/" | cut -d '/' -f 1)"
 		return
 		;;
+  start)
+		case "$cur" in
+		--*)
+			__gitcomp "
+					--nofetch --fetch
+					--nopublish --publish
+				"
+			return
+			;;
+		esac
+
+    if [ ${#words[@]} -eq 6 ]; then
+      __gitcomp_nl "$(git config --get gitflow.branch.master)
+$(__git_flow_list_local_branches_including_prefix 'release')"
+    fi
+
+		return
+		;;
 	rebase)
 		case "$cur" in
 		--*)
@@ -306,7 +324,7 @@ __git_flow_story ()
 
 __git_flow_release ()
 {
-	local subcommands="list start finish track publish help delete"
+	local subcommands="list start checkout finish track publish help delete"
 	local subcommand="$(__git_find_on_cmdline "$subcommands")"
 	if [ -z "$subcommand" ]; then
 		__gitcomp "$subcommands"
@@ -351,6 +369,10 @@ __git_flow_release ()
 		__gitcomp_nl "$(__git_flow_list_local_branches 'release')"
 		return
 		;;
+	checkout)
+		__gitcomp_nl "$(__git_flow_list_local_branches 'release')"
+		return
+		;;
 	publish)
 		__gitcomp_nl "$(__git_flow_list_branches 'release')"
 		return
@@ -379,7 +401,7 @@ __git_flow_release ()
 
 __git_flow_hotfix ()
 {
-	local subcommands="list start finish track publish help delete"
+	local subcommands="list start checkout finish track publish help delete"
 	local subcommand="$(__git_find_on_cmdline "$subcommands")"
 	if [ -z "$subcommand" ]; then
 		__gitcomp "$subcommands"
@@ -420,6 +442,10 @@ __git_flow_hotfix ()
 			return
 			;;
 		esac
+		__gitcomp_nl "$(__git_flow_list_local_branches 'hotfix')"
+		return
+		;;
+	checkout)
 		__gitcomp_nl "$(__git_flow_list_local_branches 'hotfix')"
 		return
 		;;
@@ -537,6 +563,21 @@ __git_flow_list_local_branches ()
 			while read -r entry; do
 				eval "$entry"
 				ref="${ref#$prefix}"
+				echo "$ref"
+			done | sort
+	else
+		git for-each-ref --format="ref=%(refname:short)" refs/heads/ | sort
+
+	fi
+}
+
+__git_flow_list_local_branches_including_prefix ()
+{
+	if [ -n "$1" ]; then
+		local prefix="$(__git_flow_prefix $1)"
+		git for-each-ref --shell --format="ref=%(refname:short)" refs/heads/$prefix | \
+			while read -r entry; do
+				eval "$entry"
 				echo "$ref"
 			done | sort
 	else
