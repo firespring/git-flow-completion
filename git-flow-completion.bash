@@ -374,7 +374,7 @@ __git_flow_release ()
 		return
 		;;
 	publish)
-		__gitcomp_nl "$(__git_flow_list_branches 'release')"
+		__gitcomp_nl "$(__git_flow_list_local_branches 'release')"
 		return
 		;;
 	track)
@@ -450,7 +450,7 @@ __git_flow_hotfix ()
 		return
 		;;
 	publish)
-		__gitcomp_nl "$(__git_flow_list_branches 'hotfix')"
+    __gitcomp_nl "$(__git_flow_list_local_branches 'hotfix')"
 		return
 		;;
 	track)
