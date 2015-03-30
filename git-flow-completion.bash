@@ -309,7 +309,7 @@ __git_flow_story ()
 		return
 		;;
 	publish)
-		__gitcomp_nl "$(__git_flow_list_branches 'story' | grep "/.*/.*/" | cut -d '/' -f 4)"
+		__gitcomp_nl "$(__git_flow_list_local_branches 'story' | grep "/.*/.*/" | cut -d '/' -f 4)"
 		return
 		;;
 	track)
