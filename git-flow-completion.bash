@@ -55,7 +55,7 @@ __git_flow_config_file_options="
 
 _git_flow ()
 {
-	local subcommands="init feature story release hotfix support help version config finish delete"
+	local subcommands="init feature story standalone-story release hotfix support help version config finish delete"
 	local subcommand="$(__git_find_on_cmdline "$subcommands")"
 	if [ -z "$subcommand" ]; then
 		__gitcomp "$subcommands"
@@ -73,6 +73,10 @@ _git_flow ()
 		;;
 	story)
 		__git_flow_story
+		return
+		;;
+	standalone-story)
+		__git_flow_standalone_story
 		return
 		;;
 	release)
@@ -322,6 +326,112 @@ __git_flow_story ()
 	esac
 }
 
+__git_flow_standalone_story ()
+{
+	local subcommands="list start finish publish track diff rebase checkout pull help delete"
+	local subcommand="$(__git_find_on_cmdline "$subcommands")"
+
+	if [ -z "$subcommand" ]; then
+		__gitcomp "$subcommands"
+		return
+	fi
+
+	case "$subcommand" in
+	pull)
+		__gitcomp_nl "$(__git_remotes)"
+		return
+		;;
+	checkout)
+		__gitcomp_nl "$(__git_flow_list_local_branches 'standalone-story')"
+		return
+		;;
+	delete)
+		case "$cur" in
+		--*)
+			__gitcomp "
+					--noforce --force
+					--noremote --remote
+					"
+			return
+			;;
+		esac
+		__gitcomp_nl "$(__git_flow_list_local_branches 'standalone-story')"
+		return
+		;;
+	finish)
+		case "$cur" in
+		--*)
+			__gitcomp "
+					--nofetch --fetch
+					--norebase --rebase
+					--nopreserve-merges --preserve-merges
+					--nokeep --keep
+					--keepremote
+					--keeplocal
+					--noforce_delete --force_delete
+					--nosquash --squash
+					--no-ff
+				"
+			return
+			;;
+		esac
+    if [ ${#words[@]} -eq 5 ]; then
+		  __gitcomp_nl "$(__git_flow_list_local_branches 'standalone-story')"
+    elif [ ${#words[@]} -eq 6 ]; then
+      __gitcomp_nl "$(__git_flow_list_local_branches 'release')"
+    fi
+
+		return
+		;;
+	diff)
+	  __gitcomp_nl "$(__git_flow_list_local_branches 'standalone-story')"
+		return
+		;;
+  start)
+		case "$cur" in
+		--*)
+			__gitcomp "
+					--nofetch --fetch
+					--nopublish --publish
+				"
+			return
+			;;
+		esac
+
+    if [ ${#words[@]} -eq 6 ]; then
+      __gitcomp_nl "$(git config --get gitflow.branch.master)
+$(__git_flow_list_local_branches_including_prefix 'release')"
+    fi
+
+		return
+		;;
+	rebase)
+		case "$cur" in
+		--*)
+			__gitcomp "
+					--nointeractive --interactive
+					--nopreserve-merges --preserve-merges
+				"
+			return
+			;;
+		esac
+		__gitcomp_nl "$(__git_flow_list_local_branches 'standalone-story')"
+		return
+		;;
+	publish)
+		__gitcomp_nl "$(__git_flow_list_local_branches 'standalone-story')"
+		return
+		;;
+	track)
+		__gitcomp_nl "$(__git_flow_list_branches 'standalone-story')"
+		return
+		;;
+	*)
+		COMPREPLY=()
+		;;
+	esac
+}
+
 __git_flow_release ()
 {
 	local subcommands="list start checkout finish track publish help delete"
@@ -548,8 +658,9 @@ __git_flow_config ()
 __git_flow_prefix ()
 {
 	case "$1" in
-	feature|release|hotfix|support)
-		git config "gitflow.prefix.$1" 2> /dev/null || echo "$1/"
+	feature|standalone-story|release|hotfix|support)
+    prefix_name="`echo "$1" | sed -re "s@standalone-@@g"`"
+		git config "gitflow.prefix.$prefix_name" 2> /dev/null || echo "$prefix_name/"
 		return
 		;;
 	esac
