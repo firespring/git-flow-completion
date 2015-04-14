@@ -35,7 +35,9 @@ _git-flow ()
 			local -a subcommands
 			subcommands=(
 				'init:Initialize a new git repo with support for the branching model.'
+				'standalone-story:Manage your standalone-story branches.'
 				'feature:Manage your feature branches.'
+				'story:Manage your story branches.'
 				'config:Manage your configuration.'
 				'release:Manage your release branches.'
 				'hotfix:Manage your hotfix branches.'
@@ -64,9 +66,18 @@ _git-flow ()
 						__git-flow-release
 					;;
 
+					(standalone-story)
+						__git-flow-standalone-story
+					;;
+
 					(feature)
 						__git-flow-feature
 					;;
+
+					(story)
+						__git-flow-story
+					;;
+
 					(config)
 					__git-flow-config
 					;;
@@ -207,6 +218,101 @@ __git-flow-hotfix ()
 	esac
 }
 
+__git-flow-standalone-story ()
+{
+	local curcontext="$curcontext" state line
+	typeset -A opt_args
+
+	_arguments -C \
+		':command:->command' \
+		'*::options:->options'
+
+	case $state in
+		(command)
+
+			local -a subcommands
+			subcommands=(
+				'start:Start a new standalone-story branch.'
+				'finish:Finish a standalone-story branch.'
+				'delete:Delete a standalone-story branch.'
+				'list:List all your standalone-story branches. (Alias to `git flow standalone-story`)'
+				'publish:Publish standalone-story branch to remote.'
+				'track:Checkout remote standalone-story branch.'
+				'diff:Show all changes.'
+				'rebase:Rebase from integration branch.'
+				'checkout:Checkout local standalone-story branch.'
+				'pull:Pull changes from remote.'
+			)
+			_describe -t commands 'git flow standalone-story' subcommands
+			_arguments \
+				-v'[Verbose (more) output]'
+		;;
+
+		(options)
+			case $line[1] in
+
+				(start)
+					_arguments \
+						-F'[Fetch from origin before performing finish]'\
+						':standalone-story:__git_flow_feature_list'\
+						':branch-name:__git_branch_names'
+				;;
+
+				(finish)
+					_arguments \
+						-F'[Fetch from origin before performing finish]' \
+						-r'[Rebase instead of merge]'\
+						':standalone-story:__git_flow_feature_list'
+				;;
+
+				(delete)
+					_arguments \
+						-f'[Force deletion]' \
+						-r'[Delete remote branch]' \
+						':standalone-story:__git_flow_feature_list'
+				;;
+
+				(publish)
+					_arguments \
+						':standalone-story:__git_flow_feature_list'\
+				;;
+
+				(track)
+					_arguments \
+						':standalone-story:__git_flow_feature_list'\
+				;;
+
+				(diff)
+					_arguments \
+						':branch:__git_branch_names'\
+				;;
+
+				(rebase)
+					_arguments \
+						-i'[Do an interactive rebase]' \
+						':branch:__git_branch_names'
+				;;
+
+				(checkout)
+					_arguments \
+						':branch:__git_flow_feature_list'\
+				;;
+
+				(pull)
+					_arguments \
+						':remote:__git_remotes'\
+						':branch:__git_branch_names'
+				;;
+
+				*)
+					_arguments \
+						-v'[Verbose (more) output]'
+				;;
+			esac
+		;;
+	esac
+}
+
 __git-flow-feature ()
 {
 	local curcontext="$curcontext" state line
@@ -269,6 +375,101 @@ __git-flow-feature ()
 				(track)
 					_arguments \
 						':feature:__git_flow_feature_list'\
+				;;
+
+				(diff)
+					_arguments \
+						':branch:__git_branch_names'\
+				;;
+
+				(rebase)
+					_arguments \
+						-i'[Do an interactive rebase]' \
+						':branch:__git_branch_names'
+				;;
+
+				(checkout)
+					_arguments \
+						':branch:__git_flow_feature_list'\
+				;;
+
+				(pull)
+					_arguments \
+						':remote:__git_remotes'\
+						':branch:__git_branch_names'
+				;;
+
+				*)
+					_arguments \
+						-v'[Verbose (more) output]'
+				;;
+			esac
+		;;
+	esac
+}
+
+__git-flow-story ()
+{
+	local curcontext="$curcontext" state line
+	typeset -A opt_args
+
+	_arguments -C \
+		':command:->command' \
+		'*::options:->options'
+
+	case $state in
+		(command)
+
+			local -a subcommands
+			subcommands=(
+				'start:Start a new story branch.'
+				'finish:Finish a story branch.'
+				'delete:Delete a story branch.'
+				'list:List all your story branches. (Alias to `git flow story`)'
+				'publish:Publish story branch to remote.'
+				'track:Checkout remote story branch.'
+				'diff:Show all changes.'
+				'rebase:Rebase from integration branch.'
+				'checkout:Checkout local story branch.'
+				'pull:Pull changes from remote.'
+			)
+			_describe -t commands 'git flow story' subcommands
+			_arguments \
+				-v'[Verbose (more) output]'
+		;;
+
+		(options)
+			case $line[1] in
+
+				(start)
+					_arguments \
+						-F'[Fetch from origin before performing finish]'\
+						':story:__git_flow_feature_list'\
+						':branch-name:__git_branch_names'
+				;;
+
+				(finish)
+					_arguments \
+						-F'[Fetch from origin before performing finish]' \
+						-r'[Rebase instead of merge]'\
+						':story:__git_flow_feature_list'
+				;;
+
+				(delete)
+					_arguments \
+						-f'[Force deletion]' \
+						-r'[Delete remote branch]' \
+						':story:__git_flow_feature_list'
+				;;
+
+				(publish)
+					_arguments \
+						':story:__git_flow_feature_list'\
+				;;
+
+				(track)
+					_arguments \
+						':story:__git_flow_feature_list'\
 				;;
 
 				(diff)
